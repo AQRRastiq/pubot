@@ -1,0 +1,6 @@
+{
+  "token": "TOKEN",
+  "default_prefix": "p!",
+  "everyoneMention": true,
+  "hostedBy": true
+}
