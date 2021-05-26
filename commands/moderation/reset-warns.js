@@ -31,7 +31,22 @@ module.exports = {
     
     db.delete(`warnings_${message.guild.id}_${user.id}`)
     user.send(`Vos warns ont été enlevés par ${message.author.username} dans ${message.guild.name}`)
-    await message.channel.send(`Les warns de ${message.mentions.users.first().username} ont été supprimés !`)
+    await message.channel.send(`Les warns de ${message.mentions.users.first().username} ont été supprimés !`).then(msg => {
+      setTimeout(() => {
+        msg.delete();
+      }, 5000);
+    })
+    let embed = new discord.MessageEmbed()
+    .setTitle("Action: RWarns")
+    .setDescription(`${user} (${user.id}) n'a plus ses warns}.`)
+    .setColor("#ff2050")
+    .setFooter(`RWarns par ${message.author.username}`);
+    
+    message.channel.send(embed).then(msg => {
+      msg.delete();
+    }, 5000)
+    
+    client.channels.cache.get('835780445475307544').send({embed: embed }) // Envoie de l'embed final dans le channel de LOG
     
   
     

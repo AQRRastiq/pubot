@@ -7,6 +7,12 @@ module.exports = {
   usage: "setwelcome <#channel>",
   description: "Set the welcome channel",
   run: (client, message, args) => {
+
+    if (!message.member.hasPermission("ADMINISTRATOR") && !message.author.id === "499297738370973716") return message.channel.send(":x: Vous n'avez pas la permission d'exécuter cette commande !").then(msg => {
+      setTimeout(() => {
+        msg.delete();
+      }, 5000)
+    })
     
     let channel = message.mentions.channels.first()
     

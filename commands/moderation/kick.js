@@ -39,9 +39,12 @@ module.exports = {
     .setColor("#ff2050")
     .setFooter(`Kick par ${message.author.username}`);
     
-    message.channel.send(embed)
+    message.channel.send(embed).then(msg => {
+      msg.delete();
+    }, 5000)
     
     target.kick({ reason: reason });
+    client.channels.cache.get('835780445475307544').send({embed: embed }) // Envoie de l'embed final dans le channel de LOG
     
     
     

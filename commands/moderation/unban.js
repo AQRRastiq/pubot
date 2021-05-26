@@ -32,13 +32,18 @@ module.exports = {
     })
 
     
-   let embed = new discord.MessageEmbed()
-     .setTitle("Action : Unban")
-     .setDescription(`L'utilisateur avec l'id ${target} a été débanni pour ${reason}.`)
-     .setColor("#ff2050")
-     .setThumbnail(target.avatarURL)
-     .setFooter(`Débanni par ${message.author.tag}`);
-    
-   message.channel.send(embed)
+    let embed = new discord.MessageEmbed()
+    .setTitle("Action : UnBan")
+    .setDescription(`${target} (${target.id}) a été débanni pour ${reason}.`)
+    .setColor("#ff2050")
+    .setThumbnail(target.avatarURL)
+    .setFooter(`Débanni par ${message.author.tag}`);
+   
+    message.channel.send(embed).then(msg => {
+      setTimeout(() => {
+        msg.delete();
+      }, 5000)
+    })
+    client.channels.cache.get('835780445475307544').send({embed: embed }) // Envoie de l'embed final dans le channel de LOG
   }
 }

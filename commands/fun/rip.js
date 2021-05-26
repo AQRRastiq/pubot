@@ -7,8 +7,8 @@ module.exports = {
   usage: "rip <utilisateur ou lien d'image>",
   category: "fun",
   run: async (client, message, args) => {
-    let user = args[0];
-    let rip = await canvacord.Canvas.rip(user);
+    let user = message.mentions.users.first() || message.author;
+    let rip = await canvacord.Canvas.rip(user.displayAvatarURL({format: 'png', dynamic: false}));
     let attachment = new MessageAttachment(rip, "rip.png");
     return message.channel.send(attachment);
     }

@@ -3,9 +3,13 @@ const { badwords } = require("./data.json")
 require('dotenv').config();
 const discord = require("discord.js");
 //Gonna use Discord.js Module xD
-const client = new discord.Client({
-  disableEveryone: true // what does this disable thing do?
-});
+const client = new discord.Client({disableEveryone: true, ws: { intents: ['GUILDS', 'GUILD_MESSAGES', 'GUILD_MEMBERS', 'GUILD_PRESENCES'] }, partials: ['MESSAGE']});
+
+const maxMessageCount = parseInt(5);
+let lastStickyMessage = "";
+let messageCount = 0;
+let stickyMessageChannel = "";
+let stickyMessageContent = "";
 const config = require('./config.json');
 client.config = config;
 const fs = require('fs');
@@ -20,12 +24,12 @@ client.config = {
 const Enmap = require("enmap");
 client.stats = new Enmap({name :"stats", dataDir: "./databases/stats"})
 client.settings = new Enmap({name :"settings", dataDir: "./databases/settings"})
+const { createCanvas } = require('canvas');
 
 const { CanvasSenpai } = require("canvas-senpai")
 const canva = new CanvasSenpai();
 const emojis = JSON.parse(fs.readFileSync('emojis.json', 'utf8'));
-client.on('messageReactionAdd', addRole);
-client.on('messageReactionRemove', removeRole);
+
 const { GiveawaysManager } = require("discord-giveaways");
 if(!db.get("giveaways")) db.set("giveaways", []);
 
@@ -98,85 +102,10 @@ client.giveawaysManager.on("giveawayReactionRemoved", (giveaway, member, reactio
 
 client.on("ready", () => {
   //When bot is ready
+  client.user.setActivity('AQR_Rastiq#0001 | r!help', ({type: "WATCHING"}))
   console.log("I am Reday to Go");
-  client.user.setActivity("p!help", ({type: "WATCHING"})); //It will set status :)
-  onReady();
 });
-async function onReady() {
-  const channel = client.channels.cache.find((channel) => channel.name === emojis.channel);
 
-  // channel will not contain messages after it is found
-  try {
-    await channel.messages.fetch();
-  } catch (err) {
-    console.error('Error fetching channel messages', err);
-    return;
-  }
-
-  emojis.message_id = "836140253344432128"
-
-  console.log(`Watching message '${emojis.message_id}' for reactions...`)
-}
-async function addRole({message, _emoji}, user) {
-  if (user.bot || message.id !== emojis.message_id) {
-    return;
-  }
-
-  // partials do not guarantee all data is available, but it can be fetched
-  // fetch the information to ensure everything is available
-  // https://github.com/discordjs/discord.js/blob/master/docs/topics/partials.md
-
-  const { guild } = message;
-
-  const member = guild.members.cache.get(user.id);
-  const role = guild.roles.cache.find((role) => role.name === "Vérifié");
-
-  if (!role) {
-    console.error(`Role not found for '${_emoji.name}'`);
-    return;
-  }
-  
-  try {
-    member.roles.add(role.id);
-  } catch (err) {
-    console.error('Error adding role', err);
-    return;
-  }
-}
-async function removeRole({message, _emoji}, user) {
-  if (user.bot || message.id !== emojis.message_id) {
-    return;
-  }
-
-  // partials do not guarantee all data is available, but it can be fetched
-  // fetch the information to ensure everything is available
-  // https://github.com/discordjs/discord.js/blob/master/docs/topics/partials.md
-  if (message.partial) {
-    try {
-      await message.fetch();
-    } catch (err) {
-      console.error('Error fetching message', err);
-      return;
-    }
-  }
-
-  const { guild } = message;
-
-  const member = guild.members.cache.get(user.id);
-  const role = guild.roles.cache.find((role) => role.name === "Vérifié");
-
-  if (!role) {
-    console.error(`Role not found for '${_emoji.name}'`);
-    return;
-  }
-
-  try{
-    member.roles.remove(role.id);
-  } catch (err) {
-    console.error('Error removing role', err);
-    return;
-  }
-}
 
 //IS URL FUNCTION - START
 
@@ -196,9 +125,136 @@ function is_url(str) {
 //STOP
 client.on("message", async message => {
   if (message.author.bot) return;  
-  //START
+    if(message.content === `r!verify`) { // Si le membre envoie ce message, alors on continue :
+      if (message.channel.name === "verif") {
 
 
+      message.delete() // Suppression du message du membre (afin d'éviter de poluer le channel)
+
+
+
+          const code = require("randomstring").generate({
+              length: 6,
+              charset: "alphanumeric",
+              capitalization: "uppercase"
+          })
+          /*
+              Ce code permet de générer le code du Captcha, par le biai d'un module, tout simple d'utilisation
+          */
+  
+          const canvas = createCanvas(700, 250); // Instanciation du Canvas
+          const ctx = canvas.getContext('2d');
+  
+
+  
+          ctx.font = '60px Karmatic Arcade'; // Ceci permet de récupérer la police (voir le README pour voir comment l'obtenir)
+          ctx.fillStyle = '#ffffff'; // Couleur du texte
+          ctx.fillText(code, canvas.width / 7, canvas.height / 1.8); // Ajout du code sur le canvas, avec la couleur et la police défnie
+  
+          const attachment = new discord.MessageAttachment(canvas.toBuffer(), 'canvas.png'); // Création de l'image, qui sera ajoutée sur l'embed
+  
+          /*
+          Je vous explique pas les champs de l'EMBED ci-dessous !
+              Si vous ne connaissez pas :
+              --> Documentation : https://discord.js.org/#/docs/main/stable/class/MessageEmbed
+          */
+          let embed = new discord.MessageEmbed()
+              .setTitle("Vérification")
+              .setDescription(`${message.member} ! Pour avoir accès à l'**entièreté** du serveur, vous devez passer la vérification ci-dessous ! \n\n__Comment ?__ \n> Il suffit simplement d'envoyer **EN DM** le code que vous voyez sur l'image ci-dessous ! \n\n:warning: Vous avez **30 secondes** pour répondre !`)
+              .attachFiles(attachment)
+              .setImage("attachment://canvas.png")
+              .setColor("#FA0000")
+              .setFooter("Le code doit être renvoyé en MAJUSCULES !")
+
+          await message.channel.send({embed: embed}).then(async (captcha) => {
+
+              captcha.delete({ timeout: 30000 }) // Suppression de l'embed au bout de 30 secondes, puisque le membre aura 30 secondes pour passer la vérification, une fois le message envoyé !
+
+              const filter = m => m.author.id === message.author.id && m.channel.id === message.channel.id 
+              
+              /*
+              Ce filtre permet de "bloquer" la réponse
+                  --> m.author.id === message.author.id : le code doit être envoyé par le membre ayant envoyé le message
+                  --> m.channel.id === message.channel.id ! le code doit être envoyé par le membre dans le même channel que celui du message
+              */
+
+              message.channel.awaitMessages(filter, { max: 1, time: 30000, errors: [ 'time' ] }) // Création du collecteur, c'est qui fera office de récépteur du captcha une fois envoyé 
+              .then((collected) => {
+
+                  if(collected.first().content === code) { // Si le contenu du message envoyé par le membre correspond au code, alors on continue :
+
+                      collected.first().delete({timeout: 3000}) // Suppression du message (3 secondes)
+                      message.channel.send(":white_check_mark: ┊ Félicitations ! **Vous avez entré le bon code !**").then((m) => m.delete({ timeout: 5000 })) // Envoie d'un message dans le channel afin d'afficher que le membre à réussi le captcha, puis suppression du message (5 secondes)
+                      message.member.roles.add(message.guild.roles.cache.get('835780444770533442')) // Ajout du rôle définit dans les 'settings' au membre
+                      
+                      let embed_valide = new discord.MessageEmbed()
+                          .setAuthor(message.author.username, message.author.displayAvatarURL({dynamic: true}))
+                          .setDescription(`${message.member} a réussi le Captcha !`)
+                          .addField("__Rôle ajouté :__", message.guild.roles.cache.get('835780444770533442'), true)
+                          .addField("__Code du Captcha :__", code, true)
+                          .setColor("#4EF20C")
+
+                      client.channels.cache.get('835780445475307544').send({embed: embed_valide }) // Envoie de l'embed final dans le channel de LOG
+
+                      // Pareil je ne vous explique pas les champs de l'embed ci-dessus, voir les lignes précédentes pour obtenir le lien de la documentation
+
+                  } else {
+                      collected.first().delete({timeout: 3000})
+                      message.channel.send(":x: ┊ Nope ! **Vous n'avez pas entré le bon code !** \nVous allez être expulsé dans 5 secondes !").then((m) => m.delete({ timeout: 4750 })) // Si le membre n'envoie pas le bon code, alors on envoie un message, qui sera supprimé, puis le BOT essaie d'expulser l'utilisation
+                      
+                      // Création de l'embed :
+                      let embed_false = new discord.MessageEmbed()
+                          .setAuthor(message.author.username, message.author.displayAvatarURL({dynamic: true}))
+                          .setDescription(`${message.member} n'a pas réussi le Captcha !`)
+                          .addField("__Code du Captcha :__", code, true)
+                          .addField("__Code envoyé :__", collected.first().content, true)
+                          .setColor("#FA0000")
+
+                      // On lance le compte à rebours
+                      setTimeout(function() {
+                          if(message.member.kickable) { // Vérification si le membre peut être expulsé
+                              message.member.kick() // Si le BOT peut, alors il l'expulse
+                              embed_false.addField("__Expulsé :__", "**OUI**", true) // On ajoute un champ à l'embed
+                          } else {
+                              message.channel.send(`Impossible d'expulser cet utilisateur \nMerci de vérifier que la position de **mon rôle** est à la plus haute position dans la hiérarchie !`).then((m) => m.delete({ timeout: 5000}))
+                              embed_false.addField("__Expulsé :__", "**NON**", true)
+                              // Le cas échéant (le membre ne peut être expulsé), le bot envoie un message, le supprime, et ajoute un champ à l'embed
+                          }
+                          client.channels.cache.get('835780445475307544').send({embed: embed_false }) // Envoie de l'embed final dans le channel de LOG
+                      }, 5000)
+                  }
+              })
+              .catch((collected) => {
+                  message.channel.send(`:x: ┊ Le temps **est écoulé** !`).then((m) => m.delete({ timeout: 4700 })) // Si le membre n'envoie pas le code dans le temps donné (ici, 30 secondes), alors le BOT envoie ce message, puis le supprime
+                  
+                  // Création de l'embed :
+                  let embed_false = new discord.MessageEmbed()
+                      .setAuthor(message.author.username, message.author.displayAvatarURL({dynamic: true}))
+                      .setDescription(`${message.member} **n'a pas réussi le Captcha à temps !**`)
+                      .setColor("#FA0000")
+
+                  // Véfication si le membre peut être expulsé, et ajouts des champs à l'Embed
+                  if(message.member.kickable) {
+                      message.member.kick()
+                      embed_false.addField("__Expulsé :__", "**OUI**", true)
+                  } else {
+                      message.channel.send(`Impossible d'expulser cet utilisateur \nMerci de vérifier que la position de **mon rôle** est à la plus haute position dans la hiérarchie !`).then((m) => m.delete({ timeout: 5000}))
+                      embed_false.addField("__Expulsé :__", "**NON**", true)
+                  }
+
+                  client.channels.cache.get('835780445475307544').send({embed: embed_false })
+              })
+          })}
+      
+
+  }
+
+  if (message.channel.id === "835780444971728920") {
+    if (message.content === "r!regles") {
+      message.member.roles.add('835780445475307544')
+    }
+    message.delete();
+  }
 
   if(!message.guild === null){
   if(!message.member.hasPermission("ADMINISTRATOR")) {
@@ -231,6 +287,139 @@ client.on("message", async message => {
     
     
   }}
+
+  if (message.channel.id === "769235352317460511") {
+    
+
+    message.channel.send(new discord.MessageEmbed()
+      .setTitle("Black Smile | 100% PUB")
+      .setColor("#ff0000")
+      .setDescription("Si vous quittez le serveur, vos publicités seront **supprimées**. \n**Respectez** les **règles publicitaires** du serveur. \n**Slowmode** de **2h**. \n**L'Équipe du Staff** vous **remercie** de** Pub** sur notre serveur !")
+      .setThumbnail('https://aqrrastiq.tk/cdn/images/blacksmile.png')).then(async m => {
+        db.set(`laststickyid_${message.author.id}_${message.channel.id}`, m.id);
+      })
+  }
+  if (message.channel.id === "769235390837162015") {
+    
+
+    message.channel.send(new discord.MessageEmbed()
+      .setTitle("Black Smile | 100% PUB")
+      .setColor("#ff0000")
+      .setDescription("Si vous quittez le serveur, vos publicités seront **supprimées**. \n**Respectez** les **règles publicitaires** du serveur. \n**Slowmode** de **2h**. \n**L'Équipe du Staff** vous **remercie** de** Pub** sur notre serveur !")
+      .setThumbnail('https://aqrrastiq.tk/cdn/images/blacksmile.png')).then(async m => {
+        db.set(`laststickyid_${message.author.id}_${message.channel.id}`, m.id);
+      })
+  }
+  if (message.channel.id === "769234831946285086") {
+    
+
+    message.channel.send(new discord.MessageEmbed()
+      .setTitle("Black Smile | 100% PUB")
+      .setColor("#ff0000")
+      .setDescription("Si vous quittez le serveur, vos publicités seront **supprimées**. \n**Respectez** les **règles publicitaires** du serveur. \n**Slowmode** de **2h**. \n**L'Équipe du Staff** vous **remercie** de** Pub** sur notre serveur !")
+      .setThumbnail('https://aqrrastiq.tk/cdn/images/blacksmile.png')).then(async m => {
+        db.set(`laststickyid_${message.author.id}_${message.channel.id}`, m.id);
+      })
+  }
+  if (message.channel.id === "769234889043345439") {
+    
+
+    message.channel.send(new discord.MessageEmbed()
+      .setTitle("Black Smile | 100% PUB")
+      .setColor("#ff0000")
+      .setDescription("Si vous quittez le serveur, vos publicités seront **supprimées**. \n**Respectez** les **règles publicitaires** du serveur. \n**Slowmode** de **2h**. \n**L'Équipe du Staff** vous **remercie** de** Pub** sur notre serveur !")
+      .setThumbnail('https://aqrrastiq.tk/cdn/images/blacksmile.png')).then(async m => {
+        db.set(`laststickyid_${message.author.id}_${message.channel.id}`, m.id);
+      })
+  }
+  if (message.channel.id === "769234920227995650") {
+    
+
+    message.channel.send(new discord.MessageEmbed()
+      .setTitle("Black Smile | 100% PUB")
+      .setColor("#ff0000")
+      .setDescription("Si vous quittez le serveur, vos publicités seront **supprimées**. \n**Respectez** les **règles publicitaires** du serveur. \n**Slowmode** de **2h**. \n**L'Équipe du Staff** vous **remercie** de** Pub** sur notre serveur !")
+      .setThumbnail('https://aqrrastiq.tk/cdn/images/blacksmile.png')).then(async m => {
+        db.set(`laststickyid_${message.author.id}_${message.channel.id}`, m.id);
+      })
+  }
+  if (message.channel.id === "769234950133514292") {
+    
+
+    message.channel.send(new discord.MessageEmbed()
+      .setTitle("Black Smile | 100% PUB")
+      .setColor("#ff0000")
+      .setDescription("Si vous quittez le serveur, vos publicités seront **supprimées**. \n**Respectez** les **règles publicitaires** du serveur. \n**Slowmode** de **2h**. \n**L'Équipe du Staff** vous **remercie** de** Pub** sur notre serveur !")
+      .setThumbnail('https://aqrrastiq.tk/cdn/images/blacksmile.png')).then(async m => {
+        db.set(`laststickyid_${message.author.id}_${message.channel.id}`, m.id);
+      })
+  }
+  if (message.channel.id === "769235025358094366") {
+    
+
+    message.channel.send(new discord.MessageEmbed()
+      .setTitle("Black Smile | 100% PUB")
+      .setColor("#ff0000")
+      .setDescription("Si vous quittez le serveur, vos publicités seront **supprimées**. \n**Respectez** les **règles publicitaires** du serveur. \n**Slowmode** de **2h**. \n**L'Équipe du Staff** vous **remercie** de** Pub** sur notre serveur !")
+      .setThumbnail('https://aqrrastiq.tk/cdn/images/blacksmile.png')).then(async m => {
+        db.set(`laststickyid_${message.author.id}_${message.channel.id}`, m.id);
+      })
+  }
+  if (message.channel.id === "769235126068314142") {
+    
+
+    message.channel.send(new discord.MessageEmbed()
+      .setTitle("Black Smile | 100% PUB")
+      .setColor("#ff0000")
+      .setDescription("Si vous quittez le serveur, vos publicités seront **supprimées**. \n**Respectez** les **règles publicitaires** du serveur. \n**Slowmode** de **2h**. \n**L'Équipe du Staff** vous **remercie** de** Pub** sur notre serveur !")
+      .setThumbnail('https://aqrrastiq.tk/cdn/images/blacksmile.png')).then(async m => {
+        db.set(`laststickyid_${message.author.id}_${message.channel.id}`, m.id);
+      })
+  }
+  if (message.channel.id === "769235710162108447") {
+    
+
+    message.channel.send(new discord.MessageEmbed()
+      .setTitle("Black Smile | 100% PUB")
+      .setColor("#ff0000")
+      .setDescription("Si vous quittez le serveur, vos publicités seront **supprimées**. \n**Respectez** les **règles publicitaires** du serveur. \n**Slowmode** de **2h**. \n**L'Équipe du Staff** vous **remercie** de** Pub** sur notre serveur !")
+      .setThumbnail('https://aqrrastiq.tk/cdn/images/blacksmile.png')).then(async m => {
+        db.set(`laststickyid_${message.author.id}_${message.channel.id}`, m.id);
+      })
+  }
+  if (message.channel.id === "769235741560537109") {
+    
+
+    message.channel.send(new discord.MessageEmbed()
+      .setTitle("Black Smile | 100% PUB")
+      .setColor("#ff0000")
+      .setDescription("Si vous quittez le serveur, vos publicités seront **supprimées**. \n**Respectez** les **règles publicitaires** du serveur. \n**Slowmode** de **2h**. \n**L'Équipe du Staff** vous **remercie** de** Pub** sur notre serveur !")
+      .setThumbnail('https://aqrrastiq.tk/cdn/images/blacksmile.png')).then(async m => {
+        db.set(`laststickyid_${message.author.id}_${message.channel.id}`, m.id);
+      })
+  }
+  if (message.channel.id === "769235792844947526") {
+    
+
+    message.channel.send(new discord.MessageEmbed()
+      .setTitle("Black Smile | 100% PUB")
+      .setColor("#ff0000")
+      .setDescription("Si vous quittez le serveur, vos publicités seront **supprimées**. \n**Respectez** les **règles publicitaires** du serveur. \n**Slowmode** de **2h**. \n**L'Équipe du Staff** vous **remercie** de** Pub** sur notre serveur !")
+      .setThumbnail('https://aqrrastiq.tk/cdn/images/blacksmile.png')).then(async m => {
+        db.set(`laststickyid_${message.author.id}_${message.channel.id}`, m.id);
+      })
+  }
+  if (message.channel.id === "769235828236484638") {
+    
+
+    message.channel.send(new discord.MessageEmbed()
+      .setTitle("Black Smile | 100% PUB")
+      .setColor("#ff0000")
+      .setDescription("Si vous quittez le serveur, vos publicités seront **supprimées**. \n**Respectez** les **règles publicitaires** du serveur. \n**Slowmode** de **2h**. \n**L'Équipe du Staff** vous **remercie** de** Pub** sur notre serveur !")
+      .setThumbnail('https://aqrrastiq.tk/cdn/images/blacksmile.png')).then(async m => {
+        db.set(`laststickyid_${message.author.id}_${message.channel.id}`, m.id);
+      })
+  }
   
   //END
   if (!message.guild) return;
@@ -274,6 +463,18 @@ if(cmdx) {
 //GONNA USE EVENT HERE
 
 client.on("guildMemberAdd", async member => {
+  if (member.guild.id === "769230794736009257") {
+    client.channels.cache.get('769237120996737065').send(`Hey ${member} !`).then(msg => {
+      setTimeout(() => {
+        msg.delete();
+      }, 5000)
+    })
+    client.channels.cache.get('769238166803841025').send(`Hey ${member} !`).then(msg => {
+      setTimeout(() => {
+        msg.delete();
+      }, 5000)
+    })
+  }
   let chx = db.get(`welchannel_${member.guild.id}`);
 
   if (chx === null) {
@@ -292,6 +493,11 @@ client.on("guildMemberAdd", async member => {
 
 
   client.channels.cache.get(chx).send("Bienvenue dans notre serveur, " + member.user.username + " !", attachment);
+  if(!member.user.bot) {
+    if (member.guild.id === "835780444770533437") {
+    member.send(`${member}, merci de passer la vérification en envoyant \`r!verify\` dans le salon "verif" ! Ensuite, suivez les étapes affichées !`)
+  }}
+  
 });
 
 function xp(message) {

@@ -2,9 +2,3 @@ node_modules
 package-lock.json
 shrinkwrap.yaml
 json.sqlite
-databases/settings/enmap.sqlite
-databases/settings/enmap.sqlite-shm
-databases/settings/enmap.sqlite-wal
-databases/stats/enmap.sqlite
-databases/stats/enmap.sqlite-shm
-databases/stats/enmap.sqlite-wal

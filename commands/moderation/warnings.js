@@ -2,7 +2,7 @@ const db = require("quick.db")
 
 module.exports = {
   name: "warnings",
-  description: "Get the warnings of yours or mentioned person",
+  description: "Avoir le nombre de warns de quelqu'un",
   category: "moderation",
   run: (client, message, args) => {
     const user = message.mentions.members.first() || message.author
@@ -14,7 +14,7 @@ module.exports = {
     if(warnings === null) warnings = 0;
     
     
-    message.channel.send(`${user} have **${warnings}** warning(s)`)
+    message.channel.send(`${user} a **${warnings}** warning(s)`)
   
   
   }

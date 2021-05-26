@@ -20,18 +20,12 @@ module.exports = {
         .setDescription("Si oui, veuillez réagir ✅ pour continuer ! S'il n'est pas installé, votre bot ne marchera pas !!\n*Aussi, [Python](https://www.python.org/downloads/) et [Ffmpeg](http://ffmpeg.org/download.html) peuvent être très utiles pour certains projets NodeJS !*")
       )
       approvalmsg.react("✅")
-      message.channel.send(new MessageEmbed()
-        .setColor(ee.color)
-        .setFooter(ee.footertext, ee.footericon)
-        .setURL(approvalmsg.url)
-        .setTitle(`Regarde tes \`dms\` pour créer ton bot !`)
-      )
       let error = false;
       await approvalmsg.awaitReactions((reaction, user) => reaction.emoji.name === '✅' && user.id === message.author.id, { max: 1, time: 60000, errors: ['time'] })
     	.then(collected => {
         if (collected.first().emoji.name == '✅') {
                                             let token, prefix,  owner = message.author.id, author = message.author;
-      author.send(
+      message.author.send(
         new MessageEmbed()
           .setColor(ee.color)
           .setFooter(ee.footertext, ee.footericon)
@@ -55,7 +49,7 @@ module.exports = {
                 .setTitle("Ce n'est pas un token valide ! Veuillez réassayer !")
                 .setDescription(`La longueur du token est correcte mais le token ne marche pas, je l'ai testé !`)
               )
-                author.send(
+                message.author.send(
                   new MessageEmbed()
                     .setColor(ee.color)
                     .setFooter(ee.footertext, ee.footericon)
@@ -65,6 +59,7 @@ module.exports = {
                   msg.channel.awaitMessages(m=>m.author.id === author.id, { max: 1, time: 180000, errors: ['time'] })
                   .then(collected => {
                     prefix = collected.first().content;
+		    collected.first().delete
                     let jointocreateconfig = require("../../bots/jointocreate/botconfig/config.json")
                     let oldconfig = jointocreateconfig;
                     oldconfig.token = token;
@@ -145,7 +140,7 @@ module.exports = {
                   })
                 }).catch(e => {
                   console.log(String(e.stack).bgRed)
-                  author.send(new MessageEmbed()
+                  message.author.send(new MessageEmbed()
                       .setColor(ee.wrongcolor)
                       .setFooter(ee.footertext, ee.footericon)
                       .setTitle(`❌ ERREUR`)
@@ -155,7 +150,7 @@ module.exports = {
               })
         .catch(e => {
               console.log(String(e.stack).bgRed)
-              author.send(new MessageEmbed()
+              message.author.send(new MessageEmbed()
                   .setColor(ee.wrongcolor)
                   .setFooter(ee.footertext, ee.footericon)
                   .setTitle(`❌ ERREUR`)
@@ -166,7 +161,7 @@ module.exports = {
             if(error) return;
       }).catch(e => {
                 console.log(String(e.stack).bgRed)
-                return message.channel.send(new MessageEmbed()
+                return message.author.send(new MessageEmbed()
                     .setColor(ee.wrongcolor)
                     .setFooter(ee.footertext, ee.footericon)
                     .setTitle(`❌ ERREUR`)
@@ -192,7 +187,7 @@ module.exports = {
 
     } catch (e) {
         console.log(String(e.stack).bgRed)
-        return message.channel.send(new MessageEmbed()
+        return message.author.send(new MessageEmbed()
             .setColor(ee.wrongcolor)
             .setFooter(ee.footertext, ee.footericon)
             .setTitle(`❌ ERREUR`)

@@ -7,16 +7,14 @@ module.exports = {
   description: "Terminer un giveaway",
   usage: "gend <id de giveaway>",
   run: async (client, message, args) => {
-    if (message.guild){
-
     // If the member doesn't have enough permissions
     if(!message.member.hasPermission('MANAGE_MESSAGES') && !message.member.roles.cache.some((r) => r.name === "Giveaways")){
-        return message.channel.send(':x: Vous n\'avez pas la permission d\'exécuter cette commande.');
+        return message.channel.send(':x: Vous ne passerez pas ! (Vous n\'avez pas la permission d\'utiliser cette commande)');
     }
 
     // If no message ID or giveaway name is specified
     if(!args[0]){
-        return message.channel.send(':x: Vous devez spécifier un ID de message!');
+        return message.channel.send(':x: Vous devez spécifier un ID de message !');
     }
 
     // try to found the giveaway with prize then with ID
@@ -28,7 +26,7 @@ module.exports = {
 
     // If no giveaway was found
     if(!giveaway){
-        return message.channel.send('Impossible de trouver un giveaway pour `'+ args.join(' ') + '`.');
+        return message.channel.send('Aucun giveaway trouvé avec l\'ID `'+ args.join(' ') + '`.');
     }
 
     // Edit the giveaway
@@ -38,18 +36,25 @@ module.exports = {
     // Success message
     .then(() => {
         // Success message
-        message.channel.send('Le giveaway va se terminer dans moins de '+(client.giveawaysManager.options.updateCountdownEvery/1000)+' secondes...');
+        message.channel.send('Ce giveaway va se terminer dans moins de '+(client.giveawaysManager.options.updateCountdownEvery/1000)+' secondes...');
     })
     .catch((e) => {
         if(e.startsWith(`Giveaway with message ID ${giveaway.messageID} is already ended.`)){
-            message.channel.send('Ce giveaway est déjà terminé!');
+            message.channel.send('Ce giveaway est déjà terminé !');
         } else {
             console.error(e);
-            message.channel.send('Il y a eu une erreur 👉👈...');
+            message.channel.send('Il y a eu une erreur...');
         }
-    })}else{
-        return message.channel.send('Vous ne pouvez pas exécuter cette commande en DM');
-    }
+    });
+    let embed = new discord.MessageEmbed()
+        .setAuthor(message.member.user.username, message.member.user.displayAvatarURL({dynamic: true}))
+        .setDescription(`${message.member} a terminé le giveaway avec l'ID "${args[0]}" !`)
+        .setColor("#4EF20C")
+  
+                // On lance le compte à rebours
+    setTimeout(function() {
+            client.channels.cache.get('835780445475307544').send({embed: embed }) // Envoie de l'embed final dans le channel de LOG
+    }, 5000)
 
   }
 }

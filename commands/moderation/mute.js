@@ -57,10 +57,22 @@ module.exports = {
     
     user.roles.add(muterole)
     
-await message.channel.send(`Vous avez mute **${message.mentions.users.first().username}** pour \`${reason}\``)
+await message.channel.send(`Vous avez mute **${message.mentions.users.first().username}** pour \`${reason}\``).then(msg => {
+  setTimeout(() => {
+    msg.delete();
+  }, 5000)
+})
+let embed = new discord.MessageEmbed()
+  .setTitle("Action: Mute")
+  .setDescription(`${user} (${user.id}) a été mute pour ${reason}.`)
+  .setColor("#ff2050")
+  .setFooter(`Mute par ${message.author.username}`);
     
-    user.send(`Vuos avez été mute dans **${message.guild.name}** par ${message.author.username} pour \`${reason}\``)
+
+client.channels.cache.get('835780445475307544').send({embed: embed }) // Envoie de l'embed final dans le channel de LOG
     
+user.send(`Vous avez été mute dans **${message.guild.name}** par ${message.author.username} pour \`${reason}\``)
+
     
 //WE ARE DONE HERE 
     

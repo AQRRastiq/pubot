@@ -31,9 +31,21 @@ module.exports = {
     
     user.roles.remove(muterole)
     
-    await message.channel.send(`**${message.mentions.users.first().username}** n'est plus mute`)
+    await message.channel.send(`Vous avez démute **${message.mentions.users.first().username}** pour \`${reason}\``).then(msg => {
+      setTimeout(() => {
+        msg.delete();
+      }, 5000)
+    })
+    let embed = new discord.MessageEmbed()
+      .setTitle("Action: UnMute")
+      .setDescription(`${user} (${user.id}) a été démute pour ${reason}.`)
+      .setColor("#ff2050")
+      .setFooter(`UnMute par ${message.author.username}`);
+        
     
-    user.send(`Vous êtes maintenant unmute dans **${message.guild.name}**`)
+    client.channels.cache.get('835780445475307544').send({embed: embed }) // Envoie de l'embed final dans le channel de LOG
+        
+    user.send(`Vous avez été démute dans **${message.guild.name}** par ${message.author.username}`)
 
   }
 };

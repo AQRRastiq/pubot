@@ -17,5 +17,11 @@ module.exports = {
                 msg.delete()
             }, 5000);
         });
+        let embed = new discord.MessageEmbed()
+          .setTitle("Action : Clear")
+          .setDescription(`${message.author.username} (${message.author.id}) a clear le salon ${message.guild.channels.cache.get(message.channel.id).toString()} dans le serveur ${message.guild.name}.`)
+          .setColor("#ff2050")
+    
+        client.channels.cache.get('835780445475307544').send({embed: embed }) // Envoie de l'embed final dans le channel de LOG
   }
 }

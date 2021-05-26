@@ -46,11 +46,33 @@ module.exports = {
     if(warnings === null) {
       db.set(`warnings_${message.guild.id}_${user.id}`, 1)
       user.send(`Vous avez été warn dans **${message.guild.name}** par ${message.author.username} pour ${reason}`)
-      await message.channel.send(`Vous avez warn **${message.mentions.users.first().username}** pour ${reason}`)
+      await message.channel.send(`Vous avez warn **${message.mentions.users.first().username}** pour \`${reason}\``).then(msg => {
+        setTimeout(() => {
+          msg.delete();
+        }, 5000)
+      })
+      let warnembed = new discord.MessageEmbed()
+        .setTitle("Action: Warn")
+        .setDescription(`${user} (${user.id}) a été warn pour ${reason}.`)
+        .setColor("#ff2050")
+        .setFooter(`Warn par ${message.author.username}`);
+          
+      
+      client.channels.cache.get('835780445475307544').send({embed: warnembed }) // Envoie de l'embed final dans le channel de LOG
+          
+      user.send(`Vous avez été warn dans **${message.guild.name}** par ${message.author.username} pour \`${reason}\``)
     } else if(warnings !== null) {
         db.add(`warnings_${message.guild.id}_${user.id}`, 1)
        user.send(`Vous avez été warn dans **${message.guild.name}** par ${message.author.username} pour ${reason}`)
-      await message.channel.send(`Vous avez warn **${message.mentions.users.first().username}** pour ${reason}`)
+       await message.channel.send(`Vous avez warn **${message.mentions.users.first().username}** pour \`${reason}\``).then(msg => {
+        setTimeout(() => {
+          msg.delete();
+        }, 5000)
+      })  
+      
+      client.channels.cache.get('835780445475307544').send({embed: warnembed }) // Envoie de l'embed final dans le channel de LOG
+          
+      user.send(`Vous avez été warn dans **${message.guild.name}** par ${message.author.username} pour \`${reason}\``)
       if (db.get(`warnings_${message.guild.id}_${user.id}`) === 3) {
         message.channel.send("Cet utilisateur a maintenant 3 warnings ! Voulez vous le bannir ?").then(m => {
                   m.react('👍').then(r => {
@@ -59,17 +81,26 @@ module.exports = {
 
                     // First argument is a filter function
                     m.awaitReactions((reaction, user) => user.id == message.author.id && (reaction.emoji.name == '👍' || reaction.emoji.name == '👎'),
-                            { max: 1, time: 30000 }).then(collected => {
+                            { max: 1, time: 30000 }).then(async collected => {
                                     if (collected.first().emoji.name == '👍') {
                                             message.channel.send('En train de bannir cet utilisateur...');
-                                            let embed = new discord.MessageEmbed()
+                                            let banembed = new discord.MessageEmbed()
      .setTitle("Action : Ban")
      .setDescription(`${user} (${user.id}) a été banni`)
      .setColor("#ff2050")
      .setThumbnail(user.avatarURL)
      .setFooter(`Banni pour avoir eu 3 warnings`);
     
-   message.channel.send(embed)
+     await message.channel.send(banembed).then(msg => {
+      setTimeout(() => {
+        msg.delete();
+      }, 5000)
+    })
+    
+    
+    client.channels.cache.get('835780445475307544').send({embed: banembed }) // Envoie de l'embed final dans le channel de LOG
+        
+    user.send(`Vous avez été warn dans **${message.guild.name}** par ${message.author.username} pour \`${reason}\``)
    user.ban({ reason: "3 warnings" })
                                     }
                                     else

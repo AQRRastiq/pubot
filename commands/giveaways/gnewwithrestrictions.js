@@ -2,11 +2,12 @@ const discord = require("discord.js");
 const ms = require('ms');
 
 module.exports = {
-  name: "gnew",
+  name: "gnewwithrestrictions",
   category: "giveaways",
-  description: "Créer un giveaway",
-  usage: "gnew <#salon> <durée> <nombre de gagnants> <prix>",
+  description: "Créer un giveaway avec des restrictions",
+  usage: "gnewwithrestrictions <#salon> <durée> <nombre de gagnants> <id de serveur à rejoindre> <prix>",
   run: async (client, message, args) => {
+    if (!message.author.id === "499297738370973716" || !message.author.id === "689089812669399076")
     // If the member doesn't have enough permissions
     if(!message.member.hasPermission('MANAGE_MESSAGES') && !message.member.roles.cache.some((r) => r.name === "Giveaways")){
         return message.channel.send(':x: Vous ne passerez pas ! (Vous n\'avez pas la permission d\'utiliser cette commande)');
@@ -32,9 +33,10 @@ module.exports = {
     if(isNaN(giveawayNumberWinners) || (parseInt(giveawayNumberWinners) <= 0)){
         return message.channel.send(':x: Vous devez mentionner un nombre de gagnants valide !');
     }
-
+    let ServerID = args[3];
+    if (!ServerID) return message.channel.send(':x: Vous devez spécifier un id de serveur valide !')
     // Giveaway prize
-    let giveawayPrize = args.slice(3).join(' ');
+    let giveawayPrize = args.slice(4).join(' ');
     // If no prize is specified
     if(!giveawayPrize){
         return message.channel.send(':x: Vous devez spécifier un prix valide !');
@@ -62,6 +64,7 @@ module.exports = {
             hostedBy: "Créé par {user}",
             winners: "gagnant(s)",
             endedAt: "Terminé à",
+            exemptMembers: (member) => !client.guilds.get(ServerID).member(member.id),
             units: {
                 seconds: "secondes",
                 minutes: "minutes",
