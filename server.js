@@ -1,5 +1,6 @@
-const { token, default_prefix } = require("./config.json");
-const { badwords } = require("./data.json") 
+const { token, default_prefix, interserver } = require("./config.json");
+const rolled = new Set();
+const { badwords, ccwords, rbot } = require("./data.json") 
 require('dotenv').config();
 const discord = require("discord.js");
 //Gonna use Discord.js Module xD
@@ -124,7 +125,8 @@ function is_url(str) {
 
 //STOP
 client.on("message", async message => {
-  if (message.author.bot) return;  
+  if (message.author.bot) return; 
+  
     if(message.content === `r!verify`) { // Si le membre envoie ce message, alors on continue :
       if (message.channel.name === "verif") {
 
@@ -194,7 +196,7 @@ client.on("message", async message => {
                           .addField("__Code du Captcha :__", code, true)
                           .setColor("#4EF20C")
 
-                      client.channels.cache.get('835780445475307544').send({embed: embed_valide }) // Envoie de l'embed final dans le channel de LOG
+                      client.channels.cache.get(db.get(`logschannel_${message.guild.id}`)).send({embed: embed_valide }) // Envoie de l'embed final dans le channel de LOG
 
                       // Pareil je ne vous explique pas les champs de l'embed ci-dessus, voir les lignes précédentes pour obtenir le lien de la documentation
 
@@ -220,7 +222,7 @@ client.on("message", async message => {
                               embed_false.addField("__Expulsé :__", "**NON**", true)
                               // Le cas échéant (le membre ne peut être expulsé), le bot envoie un message, le supprime, et ajoute un champ à l'embed
                           }
-                          client.channels.cache.get('835780445475307544').send({embed: embed_false }) // Envoie de l'embed final dans le channel de LOG
+                          client.channels.cache.get(db.get(`logschannel_${message.guild.id}`)).send({embed: embed_false }) // Envoie de l'embed final dans le channel de LOG
                       }, 5000)
                   }
               })
@@ -242,7 +244,7 @@ client.on("message", async message => {
                       embed_false.addField("__Expulsé :__", "**NON**", true)
                   }
 
-                  client.channels.cache.get('835780445475307544').send({embed: embed_false })
+                  client.channels.cache.get(db.get(`logschannel_${message.guild.id}`)).send({embed: embed_false })
               })
           })}
       
@@ -251,12 +253,12 @@ client.on("message", async message => {
 
   if (message.channel.id === "835780444971728920") {
     if (message.content === "r!regles") {
-      message.member.roles.add('835780445475307544')
+      message.member.roles.add('843074189228900392')
     }
     message.delete();
   }
 
-  if(!message.guild === null){
+
   if(!message.member.hasPermission("ADMINISTRATOR")) {
     
     if(is_url(message.content) === true) {
@@ -283,10 +285,74 @@ client.on("message", async message => {
     if(confirm) {
       message.delete()
       return message.channel.send("Tu n'as pas le droit d'envoyer des gros mots ici :/")
-    }    
+    }} 
+    let ccconfirm = false;
+    //NOW WE WILL USE FOR LOOP
+    var i;
+    for(i = 0;i < ccwords.length; i++) {
+      
+      if(message.content.toLowerCase().includes(ccwords[i].toLowerCase()))
+        ccconfirm = true;
+      
+    }
     
+    if(ccconfirm) {
+      message.react('👋')
+    }   
+    let rconfirm = false;
+    //NOW WE WILL USE FOR LOOP
+    var i;
+    for(i = 0;i < rbot.length; i++) {
+      
+      if(message.content.toLowerCase().includes(rbot[i].toLowerCase()))
+        rconfirm = true;
+      
+    }
     
-  }}
+    if(rconfirm) {
+      message.react('👀')
+    }
+
+    if (message.channel.id === "852254183112310834") {
+      client.channels.cache.get("860060652815384577").send(new discord.MessageEmbed()
+      .setTitle('Message interserveur')
+      .setDescription('Message : ' + message.content)
+      .setFooter('Message de ' + message.author.username + '#' + message.author.discriminator + ' dans le serveur "' + message.guild.name + '"')
+      .setColor('#32ffff'))
+      client.channels.cache.get("859066780655157278").send(new discord.MessageEmbed()
+      .setTitle('Message interserveur')
+      .setDescription('Message : ' + message.content)
+      .setFooter('Message de ' + message.author.username + '#' + message.author.discriminator + ' dans le serveur "' + message.guild.name + '"')
+      .setColor('#32ffff'))
+    }
+
+    if (message.channel.id === "860060652815384577") {
+      client.channels.cache.get("852254183112310834").send(new discord.MessageEmbed()
+      .setTitle('Message interserveur')
+      .setDescription('Message : ' + message.content)
+      .setFooter('Message de ' + message.author.username + '#' + message.author.discriminator + ' dans le serveur "' + message.guild.name + '"')
+      .setColor('#32ffff'))
+      client.channels.cache.get("859066780655157278").send(new discord.MessageEmbed()
+      .setTitle('Message interserveur')
+      .setDescription('Message : ' + message.content)
+      .setFooter('Message de ' + message.author.username + '#' + message.author.discriminator + ' dans le serveur "' + message.guild.name + '"')
+      .setColor('#32ffff'))
+    }
+
+    if (message.channel.id === "859066780655157278") {
+      client.channels.cache.get("852254183112310834").send(new discord.MessageEmbed()
+      .setTitle('Message interserveur')
+      .setDescription('Message : ' + message.content)
+      .setFooter('Message de ' + message.author.username + '#' + message.author.discriminator + ' dans le serveur "' + message.guild.name + '"')
+      .setColor('#32ffff'))
+      client.channels.cache.get("860060652815384577").send(new discord.MessageEmbed()
+      .setTitle('Message interserveur')
+      .setDescription('Message : ' + message.content)
+      .setFooter('Message de ' + message.author.username + '#' + message.author.discriminator + ' dans le serveur "' + message.guild.name + '"')
+      .setColor('#32ffff'))
+    }
+    
+  
 
   if (message.channel.id === "769235352317460511") {
     
@@ -463,6 +529,10 @@ if(cmdx) {
 //GONNA USE EVENT HERE
 
 client.on("guildMemberAdd", async member => {
+  if (!db.get('mtnid_' + member.guild.id) === null) member.roles.add(db.get('mtnid_' + message.guild.id))
+  if (member.guild.id === "846194000275832832") {
+    member.roles.add('846631259060437022')
+  }
   if (member.guild.id === "769230794736009257") {
     client.channels.cache.get('769237120996737065').send(`Hey ${member} !`).then(msg => {
       setTimeout(() => {
@@ -475,27 +545,47 @@ client.on("guildMemberAdd", async member => {
       }, 5000)
     })
   }
-  let chx = db.get(`welchannel_${member.guild.id}`);
+  if (member.server.id === "859014722388099102") chx = "859396330799366144";
+  else if (member.server.id === "769230794736009257") chx = "769277652695384094";
+  else if (member.server.id === "835780444770533437") chx = "835944491861016646";
+  if (chx === null) return;
 
-  if (chx === null) {
-    return;
-  }
 
+  const Jimp = require('jimp');
+  const { MessageAttachment, MessageEmbed } = require('discord.js');
+  const canvas = new Jimp(500, 150);
+  const avatar = await Jimp.read(member.user.displayAvatarURL({format: 'png'}));
+  const path = require('path');
+
+  const Quantify_55_white = await Jimp.loadFont(path.join(__dirname, './fonts/Quantify_55_white.fnt'));
+  const Quantify_25_white = await Jimp.loadFont(path.join(__dirname, './fonts/Quantify_25_white.fnt'));
+  const OpenSans_22_white = await Jimp.loadFont(path.join(__dirname, './fonts/OpenSans_22_white.fnt'));
+  const mask = await Jimp.read(path.join(__dirname, './images/avatarMask.png'));
+
+  avatar.resize(136, Jimp.AUTO);
+  mask.resize(136, Jimp.AUTO);
+  avatar.mask(mask, 0, 0);
+
+  canvas.blit(avatar, 5, 5);
+
+  canvas.print(Quantify_55_white, 158, 20, 'Bienvenue');
+  canvas.print(OpenSans_22_white, 158, 70, 'sur le serveur discord');
+  canvas.print(Quantify_25_white, 158, 105, member.guild.name);
+
+  const buffer = await canvas.getBufferAsync(Jimp.MIME_PNG);
+  const embedAttachment = new MessageAttachment(buffer, 'joinimg.png');
+
+  const newMemberEmbed = new MessageEmbed()
+    .attachFiles([embedAttachment])
+    .setColor('#cd6e57')
+    .setTitle('Ho ! Un nouveau membre !')
+    .setDescription(`Faites du bruit pour __**${member.displayName}**__ !`)
+    .setImage('attachment://joinimg.png');
   
-   let data = await canva.welcome(member, { link: "https://i.pinimg.com/originals/f3/1c/39/f31c39d56512dc8fbf30f9d0fb3ee9d3.jpg" })
- 
-    const attachment = new discord.MessageAttachment(
-      data,
-      "welcome-image.png"
-    );
-  
-  
-
-
-  client.channels.cache.get(chx).send("Bienvenue dans notre serveur, " + member.user.username + " !", attachment);
+  member.guild.channels.cache.find(c => c.id === db.get(`welchannel_${member.guild.id}`)).send(`🎉  Bienvenue <@${member.id}>  🎉!`, {embed: newMemberEmbed});
   if(!member.user.bot) {
     if (member.guild.id === "835780444770533437") {
-    member.send(`${member}, merci de passer la vérification en envoyant \`r!verify\` dans le salon "verif" ! Ensuite, suivez les étapes affichées !`)
+    member.send(`${member}, merci de passer la vérification en envoyant \`r!verify\` dans le salon <#846314585581027328> ! Ensuite, suivez les étapes affichées !`)
   }}
   
 });

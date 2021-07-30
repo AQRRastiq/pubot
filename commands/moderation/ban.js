@@ -53,7 +53,7 @@ module.exports = {
        msg.delete();
      }, 5000)
    })
-   client.channels.cache.get('835780445475307544').send({embed: embed }) // Envoie de l'embed final dans le channel de LOG
+   client.channels.cache.get(db.get(`logschannel_${message.guild.id}`)).send({embed: embed }) // Envoie de l'embed final dans le channel de LOG
    target.ban({ reason: reason })
   }
 }

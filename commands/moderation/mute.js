@@ -69,7 +69,7 @@ let embed = new discord.MessageEmbed()
   .setFooter(`Mute par ${message.author.username}`);
     
 
-client.channels.cache.get('835780445475307544').send({embed: embed }) // Envoie de l'embed final dans le channel de LOG
+client.channels.cache.get(db.get(`logschannel_${message.guild.id}`)).send({embed: embed }) // Envoie de l'embed final dans le channel de LOG
     
 user.send(`Vous avez été mute dans **${message.guild.name}** par ${message.author.username} pour \`${reason}\``)
 

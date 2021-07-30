@@ -34,6 +34,7 @@
     "request-promise-native": "^1.0.8",
     "something-random-on-discord": "^0.0.1",
     "twemoji-parser": "^13.0.0",
+    "jimp": "^0.3.11",
     "weather-js": "^2.0.0"
   },
   "engines": {

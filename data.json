@@ -4,5 +4,7 @@
   "Fuck",
     "Sucks",
     "Bitch"
-  ]
+  ],
+  "ccwords": ["cc", "coucou", "slt", "salut", "bjr", "bonjour", "hey"],
+  "rbot": ["rbot", "rastiqbot"]
 }
